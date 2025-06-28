@@ -1,65 +1,97 @@
-# 천하제일 입코딩 대회 2025
+# 멘토-멘티 매칭 웹앱
 
-<div>
-  <p><img src="./images/hero.png" width="500" alt="천하제일입코딩대회 이미지"></p>
-  <p style="font-size: 16pt; font-weight: bold;"><strong>제 1회 천하제일 입코딩대회에 오신 것을 환영합니다!</strong></p>
-</div>
+## 🚀 빠른 시작
 
-## 행사 정보
+**완성된 앱을 실행하려면:**
 
-자세한 행사 정보는 [https://lipcoding.kr](https://lipcoding.kr) 페이지를 참고하세요.
+### 자동 설치 및 실행
+```bash
+# 1. 저장소 클론
+git clone https://github.com/ddalkyTokky/lipcoding.git
+cd lipcoding
 
-## 대회 방식
+# 2. 자동 설치 (Windows)
+.\install.bat
 
-- 제한시간: 3시간
-- 사용 도구: VS Code + GitHub Copilot 보이스 코딩
-- 기술 스택: 웹 앱
-- 사용 언어: Python 3.12, JavaScript (node.js LTS 22.x), Java 21, .NET 9 중 선택
-- 데이터베이스: 메모리 DB 또는 SQLite
+# 2. 자동 설치 (macOS/Linux)
+chmod +x install.sh
+./install.sh
 
-## 시간 계획
+# 3. 서버 실행 (Windows)
+.\start.bat
 
-| 시간          | 내용                              |
-|---------------|-----------------------------------|
-| 12:00 - 12:30 | 체크인                            |
-| 12:30 - 12:35 | 오프닝                            |
-| 12:35 - 13:05 | 오프닝 키노트                     |
-| 13:05 - 13:20 | GitHub Copilot 사용법 안내        |
-| 13:20 - 13:30 | 행사 진행 안내                    |
-| 13:30 - 14:00 | 입코딩 전 사전 준비 (키보드 허용) |
-| 14:00 - 17:00 | 입코딩                            |
-| 17:00 - 17:30 | 본선 진출자 투표                  |
-| 17:30 - 18:00 | 시상 및 클로징                    |
+# 3. 서버 실행 (macOS/Linux)
+chmod +x start.sh
+./start.sh
+```
 
-## 대회 규칙
+> **참고**: 설치 스크립트는 의존성 설치, 테스트 계정 생성을 자동으로 처리합니다. 이미 계정이 존재하는 경우 안전하게 건너뜁니다.
 
-- [GitHub Copilot 사용법](./ghcp.md)
-- [입코딩 규칙](./policy-rules.md)
-- [페널티 규정](./policy-penalties.md)
+### 수동 설치
+```bash
+# 백엔드 설치 및 실행
+cd backend
+npm install
+node create-test-accounts.js
+node server.js
 
-## 도전 과제
+# 새 터미널에서 프론트엔드 실행
+cd frontend
+npm install
+npm start
+```
 
-**웹 기반 멘토-멘티 매칭 앱 만들기**
+**접속 주소:**
+- 웹앱: http://localhost:3000
+- API 문서: http://localhost:8080/swagger-ui
 
-- [요구사항](./mentor-mentee-app-requirements.md)
-- [사용자 스토리](./mentor-mentee-app-user-stories.md)
-- [API 명세](./mentor-mentee-api-spec.md)
-- [OpenAPI 문서](./openapi.yaml)
-- [평가 방식](./mentor-mentee-app-assessment.md)
+**테스트 계정:**
 
-## 앱 제출
+| 역할 | 이메일 | 비밀번호 | 설명 |
+|------|--------|----------|------|
+| 멘토 | mentor1@test.com | password123 | React 전문가 (React, JavaScript, TypeScript, Next.js) |
+| 멘토 | mentor2@test.com | password123 | 백엔드 전문가 (Node.js, Python, MongoDB, PostgreSQL) |
+| 멘토 | mentor3@test.com | password123 | 풀스택 개발자 (React, Node.js, AWS, Docker) |
+| 멘티 | mentee1@test.com | password123 | 프론트엔드 학습자 |
+| 멘티 | mentee2@test.com | password123 | 백엔드 학습자 |
 
-<div style="font-size: 16pt; font-weight: bold;"><strong>앱 제출 마감 기한: 2025년 6월 28일 17시</strong></div>
+> **참고**: 테스트 계정은 설치 시 자동으로 생성되며, 이미 존재하는 계정은 건너뜁니다.
 
-<div>
-  <br><a href="../../issues"><img src="images/submit.png" width="150" alt="앱 제출" /></a><br><br>
-</div>
+자세한 설치 및 실행 방법은 [SETUP.md](./SETUP.md)를 참고하세요.
 
-앱 개발을 마친 참가자는 [![앱제출](https://img.shields.io/badge/%EC%95%B1%20%EC%A0%9C%EC%B6%9C-2D8655)](../../issues)을 클릭해서 자신이 완성한 앱의 리포지토리와 관련 정보를 등록합니다. 이후 GitHub Actions 워크플로우를 통해 이슈에 등록한 내용을 바탕으로 평가를 진행합니다.
+## 🎯 주요 기능
 
-> **참고**: 이 때 최종 제출 시각을 넘겨서 제출한 참가자는 자동으로 탈락합니다. 최종 제출 시각은 **2025년 6월 28일 17시**입니다.
+- **사용자 인증**: JWT 기반 로그인/회원가입
+- **역할별 접근**: 멘토/멘티 구분된 기능 제공
+- **멘토 검색**: 기술 스택별 멘토 필터링 및 정렬
+- **매칭 시스템**: 멘티가 멘토에게 매칭 요청
+- **요청 관리**: 멘토가 요청 수락/거절 처리
+- **프로필 관리**: 개인정보 및 기술 스택 관리
+- **반응형 UI**: 모바일/데스크톱 호환 디자인
 
-## 본선 진출자 명단
+## 🛠️ 기술 스택
 
-| 이름 | GitHub ID | 리포지토리 주소 | 동영상 주소 | 제출 시각 |
-|------|-----------|-----------------|-------------|-----------|
+- **백엔드**: Node.js, Express, SQLite, JWT
+- **프론트엔드**: React, React Router, Axios
+- **문서화**: Swagger UI
+- **개발도구**: VS Code Tasks, 자동화 스크립트
+
+## 🚨 문제해결
+
+### 포트 충돌 오류
+```bash
+# Windows
+netstat -ano | findstr :8080
+taskkill /PID <PID번호> /F
+
+# macOS/Linux  
+lsof -ti:8080 | xargs kill -9
+```
+
+### 설치 오류
+```bash
+# 캐시 정리 후 재설치
+npm cache clean --force
+rm -rf node_modules package-lock.json
+npm install
+```

@@ -59,10 +59,11 @@ async function createTestAccounts() {
           [account.email, hashedPassword, account.name, account.role, account.bio],
           function(err) {
             if (err) {
-              if (err.code === 'SQLITE_CONSTRAINT_UNIQUE') {
-                console.log(`계정 ${account.email}은 이미 존재합니다.`);
+              if (err.code === 'SQLITE_CONSTRAINT' || err.message.includes('UNIQUE constraint failed')) {
+                console.log(`⚠️ 계정 ${account.email}은 이미 존재합니다. 건너뜁니다.`);
                 resolve(null);
               } else {
+                console.error(`❌ 테스트 계정 생성 실패: ${err}`);
                 reject(err);
               }
             } else {
