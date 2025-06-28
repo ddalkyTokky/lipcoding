@@ -35,14 +35,14 @@ chmod +x backend/*.sh frontend/*.sh
 .\frontend\start-frontend.bat
 
 # 3. 서버 실행 (macOS/Linux)
-# 터미널 1: 백엔드 실행
-./backend/start-backend.sh
-
-# 터미널 2: 프론트엔드 실행
-./frontend/start-frontend.sh
+# 백엔드와 프론트엔드를 한 터미널에서 실행 (백그라운드)
+./backend/start-backend.sh    # 백그라운드로 실행
+./frontend/start-frontend.sh  # 백그라운드로 실행
 ```
 
 > **참고**: 
+> - Linux/macOS에서는 서버들이 **백그라운드로 실행**되어 터미널을 계속 사용할 수 있습니다
+> - 서버 종료: `kill <PID번호>` 또는 `pkill -f "node server.js"` 
 > - 전체 설치는 백엔드와 프론트엔드를 한 번에 설치합니다.
 > - 개별 설치는 필요한 부분만 설치할 수 있습니다.
 > - 각 터미널에서 로그를 직접 확인할 수 있습니다.

@@ -49,13 +49,28 @@ chmod +x backend/*.sh frontend/*.sh
 # 4. 프론트엔드 설치
 ./frontend/install-frontend.sh
 
-# 5. 백엔드 실행 (터미널 1)
+# 5. 백엔드 실행 (백그라운드)
 ./backend/start-backend.sh
 
-# 6. 프론트엔드 실행 (터미널 2)
+# 6. 프론트엔드 실행 (백그라운드)
 ./frontend/start-frontend.sh
-./start-frontend.sh
 ```
+
+> **백그라운드 실행**: 서버들이 백그라운드로 실행되어 터미널을 계속 사용할 수 있습니다.
+> 
+> **서버 종료 방법:**
+> ```bash
+> # 특정 PID로 종료 (실행 시 표시된 PID 사용)
+> kill <PID번호>
+> 
+> # 모든 Node.js 프로세스 종료
+> pkill -f "node server.js"
+> pkill -f "npm start"
+> 
+> # 포트별 프로세스 종료
+> sudo lsof -ti:8080 | xargs kill -9  # 백엔드 (포트 8080)
+> sudo lsof -ti:3000 | xargs kill -9  # 프론트엔드 (포트 3000)
+> ```
 
 ### 4. 자주 발생하는 오류 및 해결책
 
