@@ -36,22 +36,17 @@ const router = express.Router();
 router.post('/match-requests', authenticateToken, requireRole('mentee'), (req, res) => {
   try {
     const db = getDb();
-    let { mentorId, menteeId, message } = req.body;
+    const { mentorId, menteeId, message } = req.body;
     const userId = parseInt(req.user.sub); // JWT에서 사용자 ID 가져오기
     
-    // menteeId가 제공되지 않은 경우 JWT에서 가져오기
-    if (!menteeId) {
-      menteeId = userId;
+    // 필수 필드 검증 (menteeId도 필수로 복원)
+    if (!mentorId || !menteeId || !message) {
+      return res.status(400).json({ error: 'mentorId, menteeId, and message are required' });
     }
     
-    // 필수 필드 검증
-    if (!mentorId || !message) {
-      return res.status(400).json({ error: 'mentorId and message are required' });
-    }
-    
-    // mentorId 숫자 검증
-    if (isNaN(parseInt(mentorId))) {
-      return res.status(400).json({ error: 'mentorId must be a valid number' });
+    // mentorId, menteeId 숫자 검증
+    if (isNaN(parseInt(mentorId)) || isNaN(parseInt(menteeId))) {
+      return res.status(400).json({ error: 'mentorId and menteeId must be valid numbers' });
     }
     
     // 메시지 길이 검증 (최대 1000자)
@@ -60,28 +55,49 @@ router.post('/match-requests', authenticateToken, requireRole('mentee'), (req, r
     }
     
     // 요청한 사용자가 menteeId와 일치하는지 확인
-    if (userId !== menteeId) {
+    if (userId !== parseInt(menteeId)) {
       return res.status(403).json({ error: 'Unauthorized: Cannot create request for another user' });
     }
   
   // 멘토가 존재하는지 확인
-  db.get('SELECT id, role FROM users WHERE id = ? AND role = ?', [mentorId, 'mentor'], (err, mentor) => {
+  console.log('매칭 요청 생성 시도:', { mentorId, menteeId, userId });
+  
+  // 멘토 존재 확인
+  const mentorQuery = 'SELECT id, role FROM users WHERE id = ? AND role = ?';
+  db.get(mentorQuery, [mentorId, 'mentor'], (err, mentor) => {
     if (err) {
       console.error('멘토 조회 오류:', err);
-      return res.status(500).json({ error: 'Internal server error' });
+      return res.status(500).json({ error: 'Database error while checking mentor' });
     }
     
+    console.log('멘토 조회 결과:', mentor);
     if (!mentor) {
+      console.log('멘토를 찾을 수 없음:', mentorId);
       return res.status(400).json({ error: 'Mentor not found' });
     }
     
-    // 기존 요청이 있는지 확인 (pending 상태만)
-    db.get('SELECT id FROM match_requests WHERE mentor_id = ? AND mentee_id = ? AND status = ?', 
-           [mentorId, menteeId, 'pending'], (err, existingRequest) => {
+    // 멘티 존재 확인
+    const menteeQuery = 'SELECT id, role FROM users WHERE id = ? AND role = ?';
+    db.get(menteeQuery, [menteeId, 'mentee'], (err, mentee) => {
       if (err) {
-        console.error('기존 요청 확인 오류:', err);
-        return res.status(500).json({ error: 'Internal server error' });
+        console.error('멘티 조회 오류:', err);
+        return res.status(500).json({ error: 'Database error while checking mentee' });
       }
+      
+      if (!mentee) {
+        console.log('멘티를 찾을 수 없음:', menteeId);
+        return res.status(400).json({ error: 'Mentee not found' });
+      }
+      
+      // 기존 요청이 있는지 확인 (pending 상태만)
+      const existingQuery = 'SELECT id FROM match_requests WHERE mentor_id = ? AND mentee_id = ? AND status = ?';
+      db.get(existingQuery, [mentorId, menteeId, 'pending'], (err, existingRequest) => {
+        if (err) {
+          console.error('기존 요청 확인 오류:', err);
+          return res.status(500).json({ error: 'Database error while checking existing request' });
+        }
+        
+        console.log('기존 요청 확인 결과:', existingRequest);
       
       if (existingRequest) {
         return res.status(400).json({ error: 'Pending match request already exists' });
@@ -107,8 +123,9 @@ router.post('/match-requests', authenticateToken, requireRole('mentee'), (req, r
           status: 'pending'
         });
       });
+      });
     });
-  });
+    });
   } catch (error) {
     console.error('매칭 요청 처리 중 예외 발생:', error);
     return res.status(500).json({ error: 'Internal server error' });
