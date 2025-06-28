@@ -75,6 +75,12 @@ router.post('/signup', async (req, res) => {
       return res.status(400).json({ error: 'All fields are required' });
     }
 
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ error: 'Invalid email format' });
+    }
+
     if (!['mentor', 'mentee'].includes(role)) {
       return res.status(400).json({ error: 'Role must be mentor or mentee' });
     }

@@ -141,6 +141,16 @@ router.put('/profile', authenticateToken, (req, res) => {
   const { id, name, role, bio, image, skills } = req.body;
   const userId = parseInt(req.user.sub); // 문자열을 정수로 변환
   
+  // 필수 필드 검증
+  if (!id || !name) {
+    return res.status(400).json({ error: 'id and name are required' });
+  }
+  
+  // 역할 검증 (role이 제공된 경우)
+  if (role && !['mentor', 'mentee'].includes(role)) {
+    return res.status(400).json({ error: 'Invalid role. Must be mentor or mentee' });
+  }
+  
   // 요청한 사용자가 본인인지 확인
   if (id !== userId) {
     return res.status(403).json({ error: 'Unauthorized: Cannot update another user profile' });

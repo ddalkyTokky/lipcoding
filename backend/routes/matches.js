@@ -38,6 +38,16 @@ router.post('/match-requests', authenticateToken, requireRole('mentee'), (req, r
   const { mentorId, menteeId, message } = req.body;
   const userId = parseInt(req.user.sub); // JWT에서 사용자 ID 가져오기
   
+  // 필수 필드 검증
+  if (!mentorId || !menteeId || !message) {
+    return res.status(400).json({ error: 'mentorId, menteeId, and message are required' });
+  }
+  
+  // 메시지 길이 검증 (최대 1000자)
+  if (typeof message !== 'string' || message.length > 1000) {
+    return res.status(400).json({ error: 'Message must be a string with maximum 1000 characters' });
+  }
+  
   // 요청한 사용자가 menteeId와 일치하는지 확인
   if (userId !== menteeId) {
     return res.status(403).json({ error: 'Unauthorized: Cannot create request for another user' });
@@ -277,6 +287,11 @@ router.delete('/match-requests/:id', authenticateToken, requireRole('mentee'), (
   const db = getDb();
   const requestId = req.params.id;
   const menteeId = parseInt(req.user.sub);
+  
+  // ID 파라미터 검증
+  if (!requestId || isNaN(parseInt(requestId))) {
+    return res.status(400).json({ error: 'Invalid request ID' });
+  }
   
   // 매칭 요청이 존재하고 해당 멘티의 요청인지 확인
   db.get('SELECT * FROM match_requests WHERE id = ? AND mentee_id = ?', [requestId, menteeId], (err, request) => {
