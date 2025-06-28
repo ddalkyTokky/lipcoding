@@ -64,27 +64,37 @@ router.post('/match-requests', authenticateToken, requireRole('mentee'), (req, r
       return res.status(400).json({ error: 'Mentor not found' });
     }
     
-    // 매칭 요청 생성
-    const query = `
-      INSERT INTO match_requests (mentor_id, mentee_id, message, status)
-      VALUES (?, ?, ?, 'pending')
-    `;
-    
-    db.run(query, [mentorId, menteeId, message], function(err) {
+    // 기존 요청이 있는지 확인 (pending 상태만)
+    db.get('SELECT id FROM match_requests WHERE mentor_id = ? AND mentee_id = ? AND status = ?', 
+           [mentorId, menteeId, 'pending'], (err, existingRequest) => {
       if (err) {
-        if (err.code === 'SQLITE_CONSTRAINT_UNIQUE') {
-          return res.status(400).json({ error: 'Match request already exists' });
-        }
-        console.error('매칭 요청 생성 오류:', err);
+        console.error('기존 요청 확인 오류:', err);
         return res.status(500).json({ error: 'Internal server error' });
       }
       
-      res.json({
-        id: this.lastID,
-        mentorId,
-        menteeId,
-        message,
-        status: 'pending'
+      if (existingRequest) {
+        return res.status(400).json({ error: 'Pending match request already exists' });
+      }
+      
+      // 매칭 요청 생성
+      const query = `
+        INSERT INTO match_requests (mentor_id, mentee_id, message, status)
+        VALUES (?, ?, ?, 'pending')
+      `;
+      
+      db.run(query, [mentorId, menteeId, message], function(err) {
+        if (err) {
+          console.error('매칭 요청 생성 오류:', err);
+          return res.status(500).json({ error: 'Internal server error' });
+        }
+        
+        res.json({
+          id: this.lastID,
+          mentorId,
+          menteeId,
+          message,
+          status: 'pending'
+        });
       });
     });
   });

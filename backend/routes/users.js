@@ -141,9 +141,9 @@ router.put('/profile', authenticateToken, (req, res) => {
   const { id, name, role, bio, image, skills } = req.body;
   const userId = parseInt(req.user.sub); // 문자열을 정수로 변환
   
-  // 필수 필드 검증
-  if (!id || !name) {
-    return res.status(400).json({ error: 'id and name are required' });
+  // 필수 필드 검증 - role도 필수로 추가
+  if (!id || !name || !role) {
+    return res.status(400).json({ error: 'id, name, and role are required' });
   }
   
   // 역할 검증 (role이 제공된 경우)
