@@ -10,22 +10,41 @@
 git clone https://github.com/ddalkyTokky/lipcoding.git
 cd lipcoding
 
-# 2. 자동 설치 (Windows)
+# 2-A. 전체 설치 (Windows)
 .\install.bat
 
-# 2. 자동 설치 (macOS/Linux)
+# 2-A. 전체 설치 (macOS/Linux)
 chmod +x install.sh
 ./install.sh
 
+# 2-B. 개별 설치 (Windows)
+.\install-backend.bat     # 백엔드만 설치
+.\install-frontend.bat    # 프론트엔드만 설치
+
+# 2-B. 개별 설치 (macOS/Linux)
+chmod +x install-backend.sh && ./install-backend.sh    # 백엔드만 설치
+chmod +x install-frontend.sh && ./install-frontend.sh  # 프론트엔드만 설치
+
 # 3. 서버 실행 (Windows)
-.\start.bat
+# 터미널 1: 백엔드 실행
+.\start-backend.bat
+
+# 터미널 2: 프론트엔드 실행  
+.\start-frontend.bat
 
 # 3. 서버 실행 (macOS/Linux)
-chmod +x start.sh
-./start.sh
+# 터미널 1: 백엔드 실행
+chmod +x start-backend.sh && ./start-backend.sh
+
+# 터미널 2: 프론트엔드 실행
+chmod +x start-frontend.sh && ./start-frontend.sh
 ```
 
-> **참고**: 설치 스크립트는 의존성 설치, 테스트 계정 생성을 자동으로 처리합니다. 이미 계정이 존재하는 경우 안전하게 건너뜁니다.
+> **참고**: 
+> - 전체 설치는 백엔드와 프론트엔드를 한 번에 설치합니다.
+> - 개별 설치는 필요한 부분만 설치할 수 있습니다.
+> - 각 터미널에서 로그를 직접 확인할 수 있습니다.
+> - 이미 계정이 존재하는 경우 안전하게 건너뜁니다.
 
 ### 수동 설치
 ```bash
