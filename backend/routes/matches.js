@@ -34,24 +34,35 @@ const router = express.Router();
  *         description: 매칭 요청 생성 성공
  */
 router.post('/match-requests', authenticateToken, requireRole('mentee'), (req, res) => {
-  const db = getDb();
-  const { mentorId, menteeId, message } = req.body;
-  const userId = parseInt(req.user.sub); // JWT에서 사용자 ID 가져오기
-  
-  // 필수 필드 검증
-  if (!mentorId || !menteeId || !message) {
-    return res.status(400).json({ error: 'mentorId, menteeId, and message are required' });
-  }
-  
-  // 메시지 길이 검증 (최대 1000자)
-  if (typeof message !== 'string' || message.length > 1000) {
-    return res.status(400).json({ error: 'Message must be a string with maximum 1000 characters' });
-  }
-  
-  // 요청한 사용자가 menteeId와 일치하는지 확인
-  if (userId !== menteeId) {
-    return res.status(403).json({ error: 'Unauthorized: Cannot create request for another user' });
-  }
+  try {
+    const db = getDb();
+    let { mentorId, menteeId, message } = req.body;
+    const userId = parseInt(req.user.sub); // JWT에서 사용자 ID 가져오기
+    
+    // menteeId가 제공되지 않은 경우 JWT에서 가져오기
+    if (!menteeId) {
+      menteeId = userId;
+    }
+    
+    // 필수 필드 검증
+    if (!mentorId || !message) {
+      return res.status(400).json({ error: 'mentorId and message are required' });
+    }
+    
+    // mentorId 숫자 검증
+    if (isNaN(parseInt(mentorId))) {
+      return res.status(400).json({ error: 'mentorId must be a valid number' });
+    }
+    
+    // 메시지 길이 검증 (최대 1000자)
+    if (typeof message !== 'string' || message.length > 1000) {
+      return res.status(400).json({ error: 'Message must be a string with maximum 1000 characters' });
+    }
+    
+    // 요청한 사용자가 menteeId와 일치하는지 확인
+    if (userId !== menteeId) {
+      return res.status(403).json({ error: 'Unauthorized: Cannot create request for another user' });
+    }
   
   // 멘토가 존재하는지 확인
   db.get('SELECT id, role FROM users WHERE id = ? AND role = ?', [mentorId, 'mentor'], (err, mentor) => {
@@ -98,6 +109,10 @@ router.post('/match-requests', authenticateToken, requireRole('mentee'), (req, r
       });
     });
   });
+  } catch (error) {
+    console.error('매칭 요청 처리 중 예외 발생:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
 });
 
 /**
