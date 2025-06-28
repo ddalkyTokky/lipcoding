@@ -4,7 +4,6 @@ REM 백엔드 설치 스크립트 (Windows)
 echo 🔧 백엔드 설치를 시작합니다...
 
 echo 📦 백엔드 의존성 설치 중...
-cd backend
 call npm install
 if errorlevel 1 (
     echo ❌ 백엔드 의존성 설치 실패

@@ -3,9 +3,6 @@ REM 프론트엔드 서버 실행 스크립트 (Windows)
 
 echo 🎨 프론트엔드 서버를 시작합니다...
 
-echo 📦 프론트엔드 디렉토리로 이동 중...
-cd frontend
-
 echo 🚀 프론트엔드 서버 시작 중... (포트 3000)
 echo 🌐 웹앱: http://localhost:3000
 echo 🛑 서버를 종료하려면 Ctrl+C를 누르세요.
