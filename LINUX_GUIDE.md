@@ -4,15 +4,17 @@
 
 ### 1. 스크립트 실행 권한 부여
 ```bash
-# 모든 스크립트에 실행 권한 부여
-chmod +x *.sh
+# 모든 스크립트에 실행 권한 부여 (권장)
+chmod +x backend/*.sh frontend/*.sh
 
 # 또는 개별적으로
-chmod +x install-backend.sh
-chmod +x install-frontend.sh
-chmod +x start-backend.sh
-chmod +x start-frontend.sh
+chmod +x backend/install-backend.sh
+chmod +x backend/start-backend.sh
+chmod +x frontend/install-frontend.sh
+chmod +x frontend/start-frontend.sh
 ```
+
+> **참고**: 설치 스크립트 실행 시 자동으로 실행 스크립트에 권한이 부여됩니다.
 
 ### 2. 의존성 확인
 ```bash
@@ -39,18 +41,19 @@ git clone https://github.com/ddalkyTokky/lipcoding.git
 cd lipcoding
 
 # 2. 실행 권한 부여
-chmod +x *.sh
+chmod +x backend/*.sh frontend/*.sh
 
 # 3. 백엔드 설치
-./install-backend.sh
+./backend/install-backend.sh
 
 # 4. 프론트엔드 설치
-./install-frontend.sh
+./frontend/install-frontend.sh
 
 # 5. 백엔드 실행 (터미널 1)
-./start-backend.sh
+./backend/start-backend.sh
 
 # 6. 프론트엔드 실행 (터미널 2)
+./frontend/start-frontend.sh
 ./start-frontend.sh
 ```
 

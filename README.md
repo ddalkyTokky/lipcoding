@@ -22,23 +22,24 @@ chmod +x *.sh
 .\install-frontend.bat    # 프론트엔드만 설치
 
 # 2-B. 개별 설치 (macOS/Linux)
-chmod +x *.sh
-./install-backend.sh      # 백엔드만 설치
-./install-frontend.sh     # 프론트엔드만 설치
+# 권한 설정 (처음 한 번만 - 설치 시 자동으로도 설정됨)
+chmod +x backend/*.sh frontend/*.sh
+./backend/install-backend.sh      # 백엔드만 설치
+./frontend/install-frontend.sh    # 프론트엔드만 설치
 
 # 3. 서버 실행 (Windows)
 # 터미널 1: 백엔드 실행
-.\start-backend.bat
+.\backend\start-backend.bat
 
 # 터미널 2: 프론트엔드 실행  
-.\start-frontend.bat
+.\frontend\start-frontend.bat
 
 # 3. 서버 실행 (macOS/Linux)
 # 터미널 1: 백엔드 실행
-./start-backend.sh
+./backend/start-backend.sh
 
 # 터미널 2: 프론트엔드 실행
-./start-frontend.sh
+./frontend/start-frontend.sh
 ```
 
 > **참고**: 

@@ -41,6 +41,13 @@ if [ $? -ne 0 ]; then
     echo "⚠️ 테스트 계정 생성 중 일부 오류가 있었지만 계속 진행합니다."
 fi
 
+# 실행 스크립트에 권한 부여
+echo "🔒 실행 스크립트 권한 설정 중..."
+chmod +x start-backend.sh
+if [ -f "../frontend/start-frontend.sh" ]; then
+    chmod +x ../frontend/start-frontend.sh
+fi
+
 echo "✅ 백엔드 설치 완료!"
 echo ""
 echo "🚀 실행 방법: ./start-backend.sh"
