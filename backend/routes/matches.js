@@ -1,0 +1,316 @@
+const express = require('express');
+const { authenticateToken, requireRole } = require('../middleware/auth');
+const { getDb } = require('../config/database');
+
+const router = express.Router();
+
+/**
+ * @swagger
+ * /match-requests:
+ *   post:
+ *     summary: 매칭 요청 보내기 (멘티 전용)
+ *     tags: [Matches]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - mentorId
+ *               - menteeId
+ *               - message
+ *             properties:
+ *               mentorId:
+ *                 type: integer
+ *               menteeId:
+ *                 type: integer
+ *               message:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: 매칭 요청 생성 성공
+ */
+router.post('/match-requests', authenticateToken, requireRole('mentee'), (req, res) => {
+  const db = getDb();
+  const { mentorId, menteeId, message } = req.body;
+  const userId = parseInt(req.user.sub); // JWT에서 사용자 ID 가져오기
+  
+  // 요청한 사용자가 menteeId와 일치하는지 확인
+  if (userId !== menteeId) {
+    return res.status(403).json({ error: 'Unauthorized: Cannot create request for another user' });
+  }
+  
+  // 멘토가 존재하는지 확인
+  db.get('SELECT id, role FROM users WHERE id = ? AND role = ?', [mentorId, 'mentor'], (err, mentor) => {
+    if (err) {
+      console.error('멘토 조회 오류:', err);
+      return res.status(500).json({ error: 'Internal server error' });
+    }
+    
+    if (!mentor) {
+      return res.status(400).json({ error: 'Mentor not found' });
+    }
+    
+    // 매칭 요청 생성
+    const query = `
+      INSERT INTO match_requests (mentor_id, mentee_id, message, status)
+      VALUES (?, ?, ?, 'pending')
+    `;
+    
+    db.run(query, [mentorId, menteeId, message], function(err) {
+      if (err) {
+        if (err.code === 'SQLITE_CONSTRAINT_UNIQUE') {
+          return res.status(400).json({ error: 'Match request already exists' });
+        }
+        console.error('매칭 요청 생성 오류:', err);
+        return res.status(500).json({ error: 'Internal server error' });
+      }
+      
+      res.json({
+        id: this.lastID,
+        mentorId,
+        menteeId,
+        message,
+        status: 'pending'
+      });
+    });
+  });
+});
+
+/**
+ * @swagger
+ * /match-requests/incoming:
+ *   get:
+ *     summary: 나에게 들어온 요청 목록 (멘토 전용)
+ *     tags: [Matches]
+ *     security:
+ *       - bearerAuth: []
+ */
+router.get('/match-requests/incoming', authenticateToken, requireRole('mentor'), (req, res) => {
+  const db = getDb();
+  const mentorId = parseInt(req.user.sub);
+  
+  const query = `
+    SELECT 
+      mr.id, mr.mentor_id as mentorId, mr.mentee_id as menteeId,
+      mr.message, mr.status, mr.created_at as createdAt,
+      u.name as menteeName, u.email as menteeEmail
+    FROM match_requests mr
+    JOIN users u ON mr.mentee_id = u.id
+    WHERE mr.mentor_id = ?
+    ORDER BY mr.created_at DESC
+  `;
+  
+  db.all(query, [mentorId], (err, rows) => {
+    if (err) {
+      console.error('들어온 매칭 요청 조회 오류:', err);
+      return res.status(500).json({ error: 'Internal server error' });
+    }
+    
+    res.json(rows);
+  });
+});
+
+/**
+ * @swagger
+ * /match-requests/outgoing:
+ *   get:
+ *     summary: 내가 보낸 요청 목록 (멘티 전용)
+ *     tags: [Matches]
+ *     security:
+ *       - bearerAuth: []
+ */
+router.get('/match-requests/outgoing', authenticateToken, requireRole('mentee'), (req, res) => {
+  const db = getDb();
+  const menteeId = parseInt(req.user.sub);
+  
+  const query = `
+    SELECT 
+      mr.id, mr.mentor_id as mentorId, mr.mentee_id as menteeId,
+      mr.message, mr.status, mr.created_at as createdAt,
+      u.name as mentorName, u.email as mentorEmail
+    FROM match_requests mr
+    JOIN users u ON mr.mentor_id = u.id
+    WHERE mr.mentee_id = ?
+    ORDER BY mr.created_at DESC
+  `;
+  
+  db.all(query, [menteeId], (err, rows) => {
+    if (err) {
+      console.error('보낸 매칭 요청 조회 오류:', err);
+      return res.status(500).json({ error: 'Internal server error' });
+    }
+    
+    res.json(rows);
+  });
+});
+
+/**
+ * @swagger
+ * /match-requests/{id}/accept:
+ *   put:
+ *     summary: 요청 수락 (멘토 전용)
+ *     tags: [Matches]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: integer
+ */
+router.put('/match-requests/:id/accept', authenticateToken, requireRole('mentor'), (req, res) => {
+  const db = getDb();
+  const requestId = req.params.id;
+  const mentorId = parseInt(req.user.sub);
+  
+  // 매칭 요청이 존재하고 해당 멘토의 요청인지 확인
+  db.get('SELECT * FROM match_requests WHERE id = ? AND mentor_id = ?', [requestId, mentorId], (err, request) => {
+    if (err) {
+      console.error('매칭 요청 조회 오류:', err);
+      return res.status(500).json({ error: 'Internal server error' });
+    }
+    
+    if (!request) {
+      return res.status(404).json({ error: 'Match request not found' });
+    }
+    
+    // 상태를 accepted로 업데이트
+    const updateQuery = `
+      UPDATE match_requests 
+      SET status = 'accepted', updated_at = CURRENT_TIMESTAMP
+      WHERE id = ?
+    `;
+    
+    db.run(updateQuery, [requestId], function(err) {
+      if (err) {
+        console.error('매칭 요청 수락 오류:', err);
+        return res.status(500).json({ error: 'Internal server error' });
+      }
+      
+      res.json({
+        id: request.id,
+        mentorId: request.mentor_id,
+        menteeId: request.mentee_id,
+        message: request.message,
+        status: 'accepted'
+      });
+    });
+  });
+});
+
+/**
+ * @swagger
+ * /match-requests/{id}/reject:
+ *   put:
+ *     summary: 요청 거절 (멘토 전용)
+ *     tags: [Matches]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: integer
+ */
+router.put('/match-requests/:id/reject', authenticateToken, requireRole('mentor'), (req, res) => {
+  const db = getDb();
+  const requestId = req.params.id;
+  const mentorId = parseInt(req.user.sub);
+  
+  // 매칭 요청이 존재하고 해당 멘토의 요청인지 확인
+  db.get('SELECT * FROM match_requests WHERE id = ? AND mentor_id = ?', [requestId, mentorId], (err, request) => {
+    if (err) {
+      console.error('매칭 요청 조회 오류:', err);
+      return res.status(500).json({ error: 'Internal server error' });
+    }
+    
+    if (!request) {
+      return res.status(404).json({ error: 'Match request not found' });
+    }
+    
+    // 상태를 rejected로 업데이트
+    const updateQuery = `
+      UPDATE match_requests 
+      SET status = 'rejected', updated_at = CURRENT_TIMESTAMP
+      WHERE id = ?
+    `;
+    
+    db.run(updateQuery, [requestId], function(err) {
+      if (err) {
+        console.error('매칭 요청 거절 오류:', err);
+        return res.status(500).json({ error: 'Internal server error' });
+      }
+      
+      res.json({
+        id: request.id,
+        mentorId: request.mentor_id,
+        menteeId: request.mentee_id,
+        message: request.message,
+        status: 'rejected'
+      });
+    });
+  });
+});
+
+/**
+ * @swagger
+ * /match-requests/{id}:
+ *   delete:
+ *     summary: 요청 삭제/취소 (멘티 전용)
+ *     tags: [Matches]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: integer
+ */
+router.delete('/match-requests/:id', authenticateToken, requireRole('mentee'), (req, res) => {
+  const db = getDb();
+  const requestId = req.params.id;
+  const menteeId = parseInt(req.user.sub);
+  
+  // 매칭 요청이 존재하고 해당 멘티의 요청인지 확인
+  db.get('SELECT * FROM match_requests WHERE id = ? AND mentee_id = ?', [requestId, menteeId], (err, request) => {
+    if (err) {
+      console.error('매칭 요청 조회 오류:', err);
+      return res.status(500).json({ error: 'Internal server error' });
+    }
+    
+    if (!request) {
+      return res.status(404).json({ error: 'Match request not found' });
+    }
+    
+    // 상태를 cancelled로 업데이트 (실제 삭제 대신)
+    const updateQuery = `
+      UPDATE match_requests 
+      SET status = 'cancelled', updated_at = CURRENT_TIMESTAMP
+      WHERE id = ?
+    `;
+    
+    db.run(updateQuery, [requestId], function(err) {
+      if (err) {
+        console.error('매칭 요청 취소 오류:', err);
+        return res.status(500).json({ error: 'Internal server error' });
+      }
+      
+      res.json({
+        id: request.id,
+        mentorId: request.mentor_id,
+        menteeId: request.mentee_id,
+        message: request.message,
+        status: 'cancelled'
+      });
+    });
+  });
+});
+
+module.exports = router;
