@@ -11,9 +11,27 @@ fi
 
 echo "📦 백엔드 의존성 설치 중..."
 cd backend
+
+# Node.js 버전 확인
+node_version=$(node -v | cut -d'v' -f2 | cut -d'.' -f1)
+if [ "$node_version" -lt 16 ]; then
+    echo "⚠️ Node.js v16+ 권장. 현재 버전: $(node -v)"
+fi
+
+# 기존 설치 정리 (문제 발생 시)
+if [ -f ".install_failed" ]; then
+    echo "🔄 이전 설치 실패 감지. 정리 중..."
+    rm -rf node_modules package-lock.json .install_failed
+fi
+
 npm install
 if [ $? -ne 0 ]; then
     echo "❌ 백엔드 의존성 설치 실패"
+    touch .install_failed
+    echo "💡 해결 방법:"
+    echo "   sudo apt install build-essential python3-dev  # Ubuntu/Debian"
+    echo "   sudo yum groupinstall 'Development Tools'     # CentOS/RHEL"
+    echo "   그 후 npm rebuild sqlite3 실행"
     exit 1
 fi
 

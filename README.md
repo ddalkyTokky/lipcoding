@@ -14,7 +14,7 @@ cd lipcoding
 .\install.bat
 
 # 2-A. 전체 설치 (macOS/Linux)
-chmod +x install.sh
+chmod +x *.sh
 ./install.sh
 
 # 2-B. 개별 설치 (Windows)
@@ -22,8 +22,9 @@ chmod +x install.sh
 .\install-frontend.bat    # 프론트엔드만 설치
 
 # 2-B. 개별 설치 (macOS/Linux)
-chmod +x install-backend.sh && ./install-backend.sh    # 백엔드만 설치
-chmod +x install-frontend.sh && ./install-frontend.sh  # 프론트엔드만 설치
+chmod +x *.sh
+./install-backend.sh      # 백엔드만 설치
+./install-frontend.sh     # 프론트엔드만 설치
 
 # 3. 서버 실행 (Windows)
 # 터미널 1: 백엔드 실행
@@ -34,10 +35,10 @@ chmod +x install-frontend.sh && ./install-frontend.sh  # 프론트엔드만 설�
 
 # 3. 서버 실행 (macOS/Linux)
 # 터미널 1: 백엔드 실행
-chmod +x start-backend.sh && ./start-backend.sh
+./start-backend.sh
 
 # 터미널 2: 프론트엔드 실행
-chmod +x start-frontend.sh && ./start-frontend.sh
+./start-frontend.sh
 ```
 
 > **참고**: 
@@ -45,6 +46,7 @@ chmod +x start-frontend.sh && ./start-frontend.sh
 > - 개별 설치는 필요한 부분만 설치할 수 있습니다.
 > - 각 터미널에서 로그를 직접 확인할 수 있습니다.
 > - 이미 계정이 존재하는 경우 안전하게 건너뜁니다.
+> - **리눅스**: 추가 가이드는 [LINUX_GUIDE.md](./LINUX_GUIDE.md) 참고
 
 ### 수동 설치
 ```bash
